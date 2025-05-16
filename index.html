@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Builder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Resume Builder</h1>
+
+    <div id="input-container">
+        <input type="text" id="resume-input" placeholder="Enter some text for your resume">
+        <button onclick="sendData()">Submit</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        function sendData() {
+            const inputText = document.getElementById('resume-input').value;
+
+            if (!inputText.trim()) {
+                alert("Please enter some text before submitting!");
+                return;
+            }
+
+            console.log("Sending data:", inputText);
+
+            const apiUrl = "http://af15eb7363a7f47f9b7ae2d2259bc7e3-1445917739.eu-north-1.elb.amazonaws.com/generate_resume";
+
+            document.getElementById("result").innerHTML = "<p>Generating resume... Please wait.</p>";
+
+            fetch(apiUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ input_text: inputText })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("API request failed.");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Received response:", data);
+
+                    // Formatting response for better readability
+                    const formattedResume = data.resume
+                        .replace(/(?:\r\n|\r|\n)/g, "<br>")  // Preserve line breaks
+                        .replace(/(Job Type:|Experience:|Skills:|Education:|Summary:)/g, "<strong>$1</strong>");  // Bold headers
+
+                    document.getElementById("result").innerHTML = `
+                        <h2>Generated Resume:</h2>
+                        <p>${formattedResume}</p>
+                    `;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById("result").innerHTML = "<p>Error generating resume. Please try again.</p>";
+                });
+        }
+    </script>
+</body>
+</html>
